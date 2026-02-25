@@ -2,8 +2,7 @@ package handlers
 import(
 	"encoding/json"
 	"net/http"
-	"github.com/Shubhra-Sharma/Go-REST-API/model"
-	"github.com/Shubhra-Sharma/Go-REST-API/utils"
+	"github.com/Shubhra-Sharma/Go-REST-API/internal/domain"
 )
 
 func ProductsHandler(w http.ResponseWriter, r *http.Request) {
@@ -12,10 +11,17 @@ func ProductsHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(model.ProductMap)
 	
 }
+//r = incoming http request
+//encoding/json
+//This package handles converting between Go data structures and JSON text. It's used in two directions here:
+//Encoding (Go → JSON, for responses)
+//Decoding (JSON → Go, for request bodies)
+// NewDecoder(r.Body) reads the raw JSON from the incoming request body, and .Decode(&newProduct) parses it into your Go struct. The `&` passes a pointer so the struct is actually populated.
+
 
 //Get a particular product
 func ProductHandler(w http.ResponseWriter, r *http.Request){
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json") // this tells client that the body sent as response is in json
 
 	reqID, err := utils.FetchId(w,r)   // id is a string and is converted to an integer for comparison
 	//error handling
@@ -108,10 +114,10 @@ func DeleteProductHandler(w http.ResponseWriter, r *http.Request){
 
 	if _,present := model.ProductMap[reqID]; present{
 		delete(model.ProductMap,reqID)
-		w.WriteHeader(http.StatusNoContent)
+		w.WriteHeader(http.StatusNoContent) //The status code for http.StatusNoContent is 204. It means the request was successful but there's nothing to send back in the response body
 		return
 	}
 
-	w.WriteHeader(http.StatusNotFound)
+	w.WriteHeader(http.StatusNotFound)  
 	json.NewEncoder(w).Encode(map[string]string {"error": "Product not found"})
 }
