@@ -16,7 +16,6 @@ func Connect(ctx context.Context) (*mongo.Database,error) {
     // getting environment variables
 	mongoURI := os.Getenv("MONGO_URI")
 	dbname := os.Getenv("DBNAME")
-	collectionname := os.Getenv("COLLECTION_NAME")
 
 	// creating context for connection
 	connectionCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
