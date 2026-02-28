@@ -1,13 +1,11 @@
 package repository
 import(
-	"os"
 	"context"
 	"github.com/Shubhra-Sharma/Go-REST-API/internal/domain"
     "go.mongodb.org/mongo-driver/v2/bson"
-    "go.mongodb.org/mongo-driver/v2/bson/primitive"
     "go.mongodb.org/mongo-driver/v2/mongo"
 )
-var collectionName string= os.Getenv("COLLECTION_NAME")
+//var collectionName string= os.Getenv("COLLECTION_NAME")
 
 type MongoProductRepository struct {
 	collection *mongo.Collection
@@ -20,13 +18,13 @@ func NewMongoProductRepository(db *mongo.Database, collectionName string) *Mongo
 
 //Inserting new product into product collection stored in database.
 func (r *MongoProductRepository) Create(ctx context.Context, product *domain.Product) error {
-    result, err := r.collection.InsertOne(ctx, product)
+    _,err := r.collection.InsertOne(ctx, product)
     return err
 }
 
 //Extracting the product with the particular id from the database
 func (r *MongoProductRepository) Get(ctx context.Context, id string) (*domain.Product, error) {
-    objectID, err := primitive.ObjectIDFromHex(id) // converting string id to ObjectID which is what is recognized by MongoDB.
+    objectID, err := bson.ObjectIDFromHex(id) // converting string id to ObjectID which is what is recognized by MongoDB.
     if err != nil {
         return nil, err
     }
@@ -58,7 +56,7 @@ func (r *MongoProductRepository) List(ctx context.Context) ([]*domain.Product, e
 
 // Update a particular record in database with the help of its id
 func (r *MongoProductRepository) Update(ctx context.Context, id string, product *domain.Product) error {
-    objectID, err := primitive.ObjectIDFromHex(id)
+    objectID, err := bson.ObjectIDFromHex(id)
     if err != nil {
         return err
     }
@@ -70,14 +68,14 @@ func (r *MongoProductRepository) Update(ctx context.Context, id string, product 
     _, err = r.collection.UpdateOne(
 		 ctx,
 		 bson.M{"_id": objectID}, 
-		 update
+		 update,
 		)
     return err
 }
 
 // Delete a particular record from db
 func (r *MongoProductRepository) Delete(ctx context.Context, id string) error {
-    objectID, err := primitive.ObjectIDFromHex(id) 
+    objectID, err := bson.ObjectIDFromHex(id) 
     if err != nil {
         return err
     }

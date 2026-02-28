@@ -1,6 +1,7 @@
 package repository
 import(
 	"context"
+    "github.com/Shubhra-Sharma/Go-REST-API/internal/domain"
 )
 
 type ProductRepository interface {

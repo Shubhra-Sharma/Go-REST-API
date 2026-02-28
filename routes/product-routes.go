@@ -2,13 +2,13 @@ package routes
 
 import(
 	"github.com/gorilla/mux"
-	"github.com/Shubhra-Sharma/Go-REST-API/handlers"
+	"github.com/Shubhra-Sharma/Go-REST-API/internal/handler"
 )
 
-func RegisterRoutes(router *mux.Router){
-	router.HandleFunc("/products",handlers.ProductsHandler).Methods("GET")
-	router.HandleFunc("/products/{id}",handlers.ProductHandler).Methods("GET")
-	router.HandleFunc("/products",handlers.AddProductHandler).Methods("POST")
-	router.HandleFunc("/products/{id}",handlers.UpdateProductHandler).Methods("PUT")
-	router.HandleFunc("/products/{id}",handlers.DeleteProductHandler).Methods("DELETE")
+func RegisterRoutes(router *mux.Router, h *handler.ProductHandler){
+	router.HandleFunc("/products",h.ListProducts).Methods("GET")
+	router.HandleFunc("/products/{id}",h.GetProduct).Methods("GET")
+	router.HandleFunc("/products",h.CreateProduct).Methods("POST")
+	router.HandleFunc("/products/{id}",h.UpdateProduct).Methods("PUT")
+	router.HandleFunc("/products/{id}",h.DeleteProduct).Methods("DELETE")
 }

@@ -15,17 +15,26 @@ func NewProductService(repo repository.ProductRepository) *ProductService {
     return &ProductService{repo: repo}
 }
 
-func (s *ProductService) CreateProduct(ctx context.Context, product *domain.Product) error {
-    // Validation
-    if product.Name=="" {
+// A function to check validation of product
+func validation(product *domain.Product) error {
+     if product.Name=="" {
         return errors.New("product name is required")
     }
     if product.Price<=0 {
         return errors.New("product price must be greater than 0")
     }
     if product.Quantity<0 {
-		return errors.New("Quantity must be greater than or equal to 0")
+		return errors.New("quantity must be greater than or equal to 0")
 	}
+    return nil
+}
+
+func (s *ProductService) CreateProduct(ctx context.Context, product *domain.Product) error {
+    // Validation
+    err := validation(product)
+    if err != nil {
+        return err
+    }
 
 	//Passing context to repository
     return s.repo.Create(ctx, product)
@@ -41,15 +50,10 @@ func (s *ProductService) ListProducts(ctx context.Context) ([]*domain.Product, e
 
 func (s *ProductService) UpdateProduct(ctx context.Context, id string, product *domain.Product) error {
     // Validation
-    if product.Name == "" {
-        return errors.New("product name is required")
+   err := validation(product)
+    if err != nil {
+        return err
     }
-    if product.Price <= 0 {
-        return errors.New("product price must be greater than 0")
-    }
-    if product.Quantity<0 {
-		return errors.New("Quantity must be greater than or equal to 0")
-	}
     return s.repo.Update(ctx, id, product)
 }
 
