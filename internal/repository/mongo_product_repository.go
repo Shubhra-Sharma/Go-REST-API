@@ -18,6 +18,9 @@ func NewMongoProductRepository(db *mongo.Database, collectionName string) *Mongo
 
 //Inserting new product into product collection stored in database.
 func (r *MongoProductRepository) Create(ctx context.Context, product *domain.Product) error {
+     if product.ID.IsZero() {
+        product.ID = bson.NewObjectID()  // mongoDB generates an ID for this product, but the id for Product struct in Go is still 000000, therefore this reassignment is required.
+    }
     _,err := r.collection.InsertOne(ctx, product)
     return err
 }
