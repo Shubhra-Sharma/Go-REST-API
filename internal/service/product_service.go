@@ -8,11 +8,11 @@ import (
 )
 
 type ProductService struct {
-    repo repository.ProductRepository
+    repo repository.ProductRepository // A reference to the productRepository interface in order to access its methods.
 }
 
-func NewProductService(repo repository.ProductRepository) *ProductService {
-    return &ProductService{repo: repo}
+func NewProductService(product_Repo repository.ProductRepository) *ProductService {
+    return &ProductService{repo: product_Repo}
 }
 
 // A function to check validation of product

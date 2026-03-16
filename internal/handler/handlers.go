@@ -11,11 +11,11 @@ import (
 )
 
 type ProductHandler struct {
-    service *service.ProductService // a pointer to the ProductService interface
+    service *service.ProductService // a pointer to the ProductService struct
 }
 
-func NewProductHandler(service *service.ProductService) *ProductHandler {
-    return &ProductHandler{service: service} // service pointer passed in main.go after creating ProductService interface
+func NewProductHandler(product_Service *service.ProductService) *ProductHandler {
+    return &ProductHandler{service: product_Service} // product_Service pointer passed in main.go after creating ProductService struct
 }
 
 
@@ -23,7 +23,7 @@ func NewProductHandler(service *service.ProductService) *ProductHandler {
 func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
     // Creating context with timeout of 5 second
     ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-    defer cancel()
+    defer cancel()  // cancel() helps to release resources in case if the request is completed before the context is expired.
     
     // Extracting product from request
     var product domain.Product
@@ -42,7 +42,7 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
     
     // setting up response
     w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusCreated) // How to set status after encoding?
+    w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(product) 
 }
 

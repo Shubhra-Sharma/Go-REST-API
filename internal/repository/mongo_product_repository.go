@@ -5,10 +5,10 @@ import(
     "go.mongodb.org/mongo-driver/v2/bson"
     "go.mongodb.org/mongo-driver/v2/mongo"
 )
-//var collectionName string= os.Getenv("COLLECTION_NAME")
 
+// MongoDB specific implementation of ProductRepository
 type MongoProductRepository struct {
-	collection *mongo.Collection
+	collection *mongo.Collection 
 }
 
 // Initializing MongoProductRepository to implement all the methods of ProductRepository.
@@ -54,7 +54,7 @@ func (r *MongoProductRepository) List(ctx context.Context) ([]*domain.Product, e
     return products, nil
 }
 
-// Update a particular record in database with the help of its id
+// Update a particular record in database with the help of its ID
 func (r *MongoProductRepository) Update(ctx context.Context, id string, product *domain.Product) error {
     objectID, err := bson.ObjectIDFromHex(id)
     if err != nil {

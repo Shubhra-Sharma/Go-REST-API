@@ -46,7 +46,7 @@ func main(){
     }
 
 	repo := repository.NewMongoProductRepository(db, collectionName)
-    productService := service.NewProductService(repo)
+    productService := service.NewProductService(repo) //MongoDB implementation passed as ProductRepository
     productHandler := handler.NewProductHandler(productService)
 
     router := mux.NewRouter()
