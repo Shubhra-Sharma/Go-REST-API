@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/Shubhra-Sharma/Go-REST-API/internal/domain"
+	"github.com/Shubhra-Sharma/Go-REST-API/internal/repository/models"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -38,7 +39,7 @@ func (r *MongoProductRepository) Get(ctx context.Context, id string) (*domain.Pr
 		return nil, err
 	}
 
-	var product Product
+	var product models.Product
 	filter := bson.M{"_id": objectID} // bson.M{} is a  map used to create MongoDB queries/filters, it is shorthand for "type M map[string]interface{}"
 	err = r.collection.FindOne(ctx, filter).Decode(&product)
 	if err != nil {
@@ -55,7 +56,7 @@ func (r *MongoProductRepository) List(ctx context.Context) ([]*domain.Product, e
 	}
 	defer cursor.Close(ctx) // we need to close the cursor after completion of function to prevent memory leak.
 
-	var dbProducts []*Product // sending reference to slice in place of slice to save memory.
+	var dbProducts []*models.Product // sending reference to slice in place of slice to save memory.
 	if err = cursor.All(ctx, &dbProducts); err != nil {
 		return nil, err
 	}

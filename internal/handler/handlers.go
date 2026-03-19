@@ -41,7 +41,7 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// setting up response
-	result, err := json.Marshal(product) // Marshal encodes GO's data structures into json format and returns a slice of bytes, is this the correct way?
+	result, err := json.Marshal(product) // Marshal encodes GO's data structures into json format and returns a slice of bytes
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to encode response"})
