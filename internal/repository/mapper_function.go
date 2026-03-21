@@ -67,7 +67,7 @@ func ToMongoCategory(domainCat *domain.ProductCategory) (*models.ProductCategory
 	}, nil
 }
 
-// Mapping Repository's Product to Domain's Product
+// Mapping Repository's ProductCategory to Domain's ProdutCategory
 func ToDomainCategory(mongoCat *models.ProductCategory) *domain.ProductCategory {
 	return &domain.ProductCategory{
 		ID:          mongoCat.ID.Hex(),

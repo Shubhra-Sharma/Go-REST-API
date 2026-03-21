@@ -7,9 +7,8 @@ import (
 )
 
 type ProductCategoryRepository interface {
-	Create(ctx context.Context, product *domain.ProductCategory) error
-	Get(ctx context.Context, id string) (*domain.ProductCategory, error)
+	Create(ctx context.Context, category *domain.ProductCategory) error
 	List(ctx context.Context) ([]*domain.ProductCategory, error)
-	Update(ctx context.Context, id string, product *domain.ProductCategory) error
+	Update(ctx context.Context, id string, category *domain.ProductCategory) error
 	Delete(ctx context.Context, id string) error
 }

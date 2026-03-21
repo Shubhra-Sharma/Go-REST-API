@@ -27,6 +27,9 @@ func validation(product *domain.Product) error {
 	if product.Quantity < 0 {
 		return errors.New("quantity must be greater than or equal to 0")
 	}
+	if product.Brand == "" {
+		return errors.New("brand name is compulsory for all products")
+	}
 	return nil
 }
 
