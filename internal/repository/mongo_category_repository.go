@@ -53,6 +53,18 @@ func (r *MongoProductCategoryRepository) List(ctx context.Context) ([]*domain.Pr
 	return categories, nil
 }
 
+func (r *MongoProductCategoryRepository) GetByTitle(ctx context.Context, title string) (*domain.ProductCategory, error) {
+	// objectID, err := bson.ObjectIDFromHex(id) // converting string id to ObjectID which is what is recognized by MongoDB.
+
+	var category models.ProductCategory
+	filter := bson.M{"title": title} // bson.M{} is a  map used to create MongoDB queries/filters, it is shorthand for "type M map[string]interface{}"
+	err := r.collection.FindOne(ctx, filter).Decode(&category)
+	if err != nil {
+		return nil, err
+	}
+	return ToDomainCategory(&category), nil
+}
+
 // Update a particular record in collection with the help of its ID
 func (r *MongoProductCategoryRepository) Update(ctx context.Context, id string, category *domain.ProductCategory) error {
 	objectID, err := bson.ObjectIDFromHex(id)

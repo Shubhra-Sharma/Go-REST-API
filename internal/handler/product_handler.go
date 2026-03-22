@@ -12,11 +12,15 @@ import (
 )
 
 type ProductHandler struct {
-	service *service.ProductService // a pointer to the ProductService struct
+	service         *service.ProductService // a pointer to the ProductService struct
+	categoryService *service.ProductCategoryService
 }
 
-func NewProductHandler(product_Service *service.ProductService) *ProductHandler {
-	return &ProductHandler{service: product_Service} // product_Service pointer passed in main.go after creating ProductService struct
+func NewProductHandler(product_Service *service.ProductService, category_service *service.ProductCategoryService) *ProductHandler {
+	return &ProductHandler{
+		service:         product_Service,
+		categoryService: category_service,
+	} // product_Service pointer and category_service pointer passed in main.go
 }
 
 // Creating a new Product in collection
@@ -50,6 +54,34 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	w.Write(result)
+}
+
+// Get all the products with a particular category
+func (h *ProductHandler) GetProductByCategory(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+	w.Header().Set("Content-Type", "application/json")
+	categoryTitle := r.URL.Query().Get("category")
+	if categoryTitle == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "category name is required"})
+		return
+	}
+
+	categoryID, err := h.categoryService.GetCategoryID(ctx, categoryTitle)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{"error": "category not found"})
+		return
+	}
+	products, err := h.service.GetByCategory(ctx, categoryID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "failed to fetch products"})
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(products)
 }
 
 // Get a specific product with it's ID provided in URL path

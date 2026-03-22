@@ -48,6 +48,30 @@ func (r *MongoProductRepository) Get(ctx context.Context, id string) (*domain.Pr
 	return ToDomainProduct(&product), nil
 }
 
+// Get products by category
+func (r *MongoProductRepository) GetByCategory(ctx context.Context, id string) ([]*domain.Product, error) {
+	categoryID, err := bson.ObjectIDFromHex(id) // converting string id to ObjectID which is what is recognized by MongoDB.
+	if err != nil {
+		return nil, fmt.Errorf("invalid category ID format: %w", err)
+	}
+
+	cursor, err := r.collection.Find(ctx, bson.M{"category_id": categoryID})
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch products by category: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var dbProducts []*models.Product
+	if err = cursor.All(ctx, &dbProducts); err != nil {
+		return nil, err
+	}
+	products := make([]*domain.Product, len(dbProducts))
+	for i, val := range dbProducts {
+		products[i] = ToDomainProduct(val)
+	}
+	return products, nil
+}
+
 // Get all the products
 func (r *MongoProductRepository) List(ctx context.Context) ([]*domain.Product, error) {
 	cursor, err := r.collection.Find(ctx, bson.M{}) // Cursor is like a pointer that lets you iterate through multiple documents returned by a query.

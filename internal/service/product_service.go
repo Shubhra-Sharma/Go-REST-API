@@ -48,6 +48,10 @@ func (s *ProductService) GetProduct(ctx context.Context, id string) (*domain.Pro
 	return s.repo.Get(ctx, id)
 }
 
+func (s *ProductService) GetByCategory(ctx context.Context, id string) ([]*domain.Product, error) {
+	return s.repo.GetByCategory(ctx, id)
+}
+
 func (s *ProductService) ListProducts(ctx context.Context) ([]*domain.Product, error) {
 	return s.repo.List(ctx)
 }

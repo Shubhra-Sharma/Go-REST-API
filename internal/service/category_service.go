@@ -39,6 +39,14 @@ func (s *ProductCategoryService) ListCategories(ctx context.Context) ([]*domain.
 	return s.repo.List(ctx)
 }
 
+func (s *ProductCategoryService) GetCategoryID(ctx context.Context, title string) (string, error) {
+	category, err := s.repo.GetByTitle(ctx, title)
+	if err != nil {
+		return "", nil
+	}
+	return category.ID, nil // Only returning categoryID since rest of metadata of category collection is not needed by product handler, it only wants the categoryID
+}
+
 func (s *ProductCategoryService) UpdateCategory(ctx context.Context, id string, category *domain.ProductCategory) error {
 	// Validation
 	err := categoryValidation(category)

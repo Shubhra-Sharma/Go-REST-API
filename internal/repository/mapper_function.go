@@ -21,11 +21,19 @@ func ToMongoProduct(domainProduct *domain.Product) (*models.Product, error) {
 		objectID = bson.NewObjectID()
 	}
 
+	var categoryOID bson.ObjectID
+	if domainProduct.CategoryID != "" {
+		categoryOID, err = bson.ObjectIDFromHex(domainProduct.CategoryID)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &models.Product{
 		ID:          objectID,
 		Name:        domainProduct.Name,
 		Description: domainProduct.Description,
 		Category:    domainProduct.Category,
+		CategoryID:  categoryOID,
 		Price:       domainProduct.Price,
 		Brand:       domainProduct.Brand,
 		Quantity:    domainProduct.Quantity,
@@ -39,6 +47,7 @@ func ToDomainProduct(mongoProduct *models.Product) *domain.Product {
 		Name:        mongoProduct.Name,
 		Description: mongoProduct.Description,
 		Category:    mongoProduct.Category,
+		CategoryID:  mongoProduct.CategoryID.Hex(),
 		Price:       mongoProduct.Price,
 		Brand:       mongoProduct.Brand,
 		Quantity:    mongoProduct.Quantity,
