@@ -23,7 +23,7 @@ func NewCategoryHandler(cat_Service *service.ProductCategoryService) *ProductCat
 func (h *ProductCategoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {
 	// Creating context with timeout of 5 second
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-	defer cancel() // cancel() helps to release resources in case if the request is completed before the context is expired.
+	defer cancel()
 
 	// Extracting category from request
 	var category domain.ProductCategory
@@ -41,7 +41,7 @@ func (h *ProductCategoryHandler) CreateCategory(w http.ResponseWriter, r *http.R
 	}
 
 	// setting up response
-	result, err := json.Marshal(category) // Marshal encodes GO's data structures into json format and returns a slice of bytes
+	result, err := json.Marshal(category)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to encode response"})
@@ -65,9 +65,15 @@ func (h *ProductCategoryHandler) ListCategories(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	result, err := json.Marshal(categories)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to encode response"})
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(categories)
+	w.Write(result)
 }
 
 // Updating a particular category with the category ID given in URL
@@ -99,9 +105,15 @@ func (h *ProductCategoryHandler) UpdateCategory(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	result, err := json.Marshal(category)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to encode response"})
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(category)
+	w.Write(result)
 }
 
 // Delete a specific category with it's ID given in URL path

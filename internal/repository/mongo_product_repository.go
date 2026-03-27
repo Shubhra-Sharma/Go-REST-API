@@ -50,21 +50,25 @@ func (r *MongoProductRepository) Get(ctx context.Context, id string) (*domain.Pr
 
 // Get products by category
 func (r *MongoProductRepository) GetByCategory(ctx context.Context, id string) ([]*domain.Product, error) {
-	categoryID, err := bson.ObjectIDFromHex(id) // converting string id to ObjectID which is what is recognized by MongoDB.
+	categoryID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, fmt.Errorf("invalid category ID format: %w", err)
 	}
 
+	// This cursor finds all the products with the specific category_id
 	cursor, err := r.collection.Find(ctx, bson.M{"category_id": categoryID})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch products by category: %w", err)
 	}
 	defer cursor.Close(ctx)
 
+	// Extracting products from cursor into dbProducts
 	var dbProducts []*models.Product
 	if err = cursor.All(ctx, &dbProducts); err != nil {
 		return nil, err
 	}
+
+	// Converting slice of repo model products to domain model products
 	products := make([]*domain.Product, len(dbProducts))
 	for i, val := range dbProducts {
 		products[i] = ToDomainProduct(val)

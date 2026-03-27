@@ -22,7 +22,7 @@ func NewMongoProductCategoryRepository(client *mongo.Client, dbName string, catc
 	return &MongoProductCategoryRepository{collection: db.Collection(catcollectionName)}
 }
 
-// Inserting new category into category collection stored in database.
+// Inserting new category into category collection.
 func (r *MongoProductCategoryRepository) Create(ctx context.Context, category *domain.ProductCategory) error {
 	dbCategory, err := ToMongoCategory(category)
 	if err != nil {
@@ -53,11 +53,10 @@ func (r *MongoProductCategoryRepository) List(ctx context.Context) ([]*domain.Pr
 	return categories, nil
 }
 
+// This returns the category_id for a particular category name
 func (r *MongoProductCategoryRepository) GetByTitle(ctx context.Context, title string) (*domain.ProductCategory, error) {
-	// objectID, err := bson.ObjectIDFromHex(id) // converting string id to ObjectID which is what is recognized by MongoDB.
-
 	var category models.ProductCategory
-	filter := bson.M{"title": title} // bson.M{} is a  map used to create MongoDB queries/filters, it is shorthand for "type M map[string]interface{}"
+	filter := bson.M{"title": title}
 	err := r.collection.FindOne(ctx, filter).Decode(&category)
 	if err != nil {
 		return nil, err

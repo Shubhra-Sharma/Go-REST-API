@@ -42,6 +42,7 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// First fetch the categoryID for the respective category
 	categoryID, err := h.categoryService.GetCategoryID(ctx, product.Category)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -70,9 +71,12 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 // Get all the products with a particular category
 func (h *ProductHandler) GetProductByCategory(w http.ResponseWriter, r *http.Request) {
+	// context
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
+
+	// Fetching category title from URL
 	categoryTitle := r.URL.Query().Get("category")
 	if categoryTitle == "" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -80,20 +84,31 @@ func (h *ProductHandler) GetProductByCategory(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	// Fetching categoryID from category collection so that filtering can be done using categoryID
 	categoryID, err := h.categoryService.GetCategoryID(ctx, categoryTitle)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(map[string]string{"error": "category not found"})
 		return
 	}
+
+	// After fetchinf categoryID, passing context to service layer
 	products, err := h.service.GetByCategory(ctx, categoryID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "failed to fetch products"})
 		return
 	}
+
+	// Encoding response
+	result, err := json.Marshal(products)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to encode response"})
+		return
+	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(products)
+	w.Write(result)
 }
 
 // Get a specific product with it's ID provided in URL path

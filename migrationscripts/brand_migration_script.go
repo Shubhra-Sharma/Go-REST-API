@@ -34,6 +34,7 @@ func init() {
 		collectionName = "products"
 	}
 
+	// Connecting to MongoDB
 	client, err := database.Connect(ctx, mongoURI, dbName)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
