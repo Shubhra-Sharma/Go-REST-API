@@ -36,7 +36,19 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request."})
 		return
 	}
+	if product.Category == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Please choose a category for your product"})
+		return
+	}
 
+	categoryID, err := h.categoryService.GetCategoryID(ctx, product.Category)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{"error": "category not found"})
+		return
+	}
+	product.CategoryID = categoryID
 	// Creating new product by passing it through to the service layer
 	if err := h.service.CreateProduct(ctx, &product); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

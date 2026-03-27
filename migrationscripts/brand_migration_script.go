@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func main() {
+func init() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
