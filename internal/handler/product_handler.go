@@ -16,10 +16,10 @@ type ProductHandler struct {
 	categoryService *service.ProductCategoryService
 }
 
-func NewProductHandler(product_Service *service.ProductService, category_service *service.ProductCategoryService) *ProductHandler {
+func NewProductHandler(productService *service.ProductService, categoryService *service.ProductCategoryService) *ProductHandler {
 	return &ProductHandler{
-		service:         product_Service,
-		categoryService: category_service,
+		service:         productService,
+		categoryService: categoryService,
 	} // product_Service pointer and category_service pointer passed in main.go
 }
 
@@ -77,7 +77,13 @@ func (h *ProductHandler) GetProductByCategory(w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Type", "application/json")
 
 	// Fetching category title from URL
-	categoryTitle := r.URL.Query().Get("category")
+	params := mux.Vars(r)
+	categoryTitle := params["category"]
+	if categoryTitle == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "No category name provided."})
+		return
+	}
 	if categoryTitle == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{"error": "category name is required"})

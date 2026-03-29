@@ -17,19 +17,33 @@ type MongoProductCategoryRepository struct {
 }
 
 // Initializing MongoProductCategoryRepository to implement all the methods of ProductCategoryRepository.
-func NewMongoProductCategoryRepository(client *mongo.Client, dbName string, catcollectionName string) *MongoProductCategoryRepository {
+func NewMongoProductCategoryRepository(client *mongo.Client, dbName string, categoryCollectionName string) *MongoProductCategoryRepository {
 	db := client.Database(dbName)
-	return &MongoProductCategoryRepository{collection: db.Collection(catcollectionName)}
+	return &MongoProductCategoryRepository{collection: db.Collection(categoryCollectionName)}
 }
 
 // Inserting new category into category collection.
-func (r *MongoProductCategoryRepository) Create(ctx context.Context, category *domain.ProductCategory) error {
+func (r *MongoProductCategoryRepository) Create(ctx context.Context, category *domain.ProductCategory) (*domain.ProductCategory, error) {
 	dbCategory, err := ToMongoCategory(category)
 	if err != nil {
-		return err
+		return nil, err
 	}
+
+	// Checking if the category already exists in the database to prevent duplication of same category
+	var isDuplicate bson.M
+	err = r.collection.FindOne(ctx, bson.M{"title": dbCategory.Title}).Decode(&isDuplicate)
+	// If category already exists, do not create duplicate category
+	if err == nil {
+		return nil, fmt.Errorf("category '%s' already exists", dbCategory.Title)
+	}
+	if err != mongo.ErrNoDocuments {
+		// A real error occurred
+		return nil, err
+	}
+
+	// Inserting new category document to database
 	_, err = r.collection.InsertOne(ctx, dbCategory)
-	return err
+	return ToDomainCategory(dbCategory), err
 }
 
 // Get all the categories in db

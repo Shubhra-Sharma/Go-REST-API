@@ -15,11 +15,11 @@ type ProductCategoryHandler struct {
 	service *service.ProductCategoryService // a pointer to the ProductCategoryService struct
 }
 
-func NewCategoryHandler(cat_Service *service.ProductCategoryService) *ProductCategoryHandler {
-	return &ProductCategoryHandler{service: cat_Service} // cat_Service pointer passed in main.go after creating ProductCategoryService struct
+func NewCategoryHandler(categoryService *service.ProductCategoryService) *ProductCategoryHandler {
+	return &ProductCategoryHandler{service: categoryService} // categoryService pointer passed in main.go after creating ProductCategoryService struct
 }
 
-// Creating a new Product in collection
+// Creating a new category in collection
 func (h *ProductCategoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {
 	// Creating context with timeout of 5 second
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
@@ -34,14 +34,15 @@ func (h *ProductCategoryHandler) CreateCategory(w http.ResponseWriter, r *http.R
 	}
 
 	// Creating new category by passing it through to the service layer
-	if err := h.service.CreateCategory(ctx, &category); err != nil {
+	resultCategory, err := h.service.CreateCategory(ctx, &category)
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Something went wrong."})
 		return
 	}
 
 	// setting up response
-	result, err := json.Marshal(category)
+	result, err := json.Marshal(resultCategory)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to encode response"})
@@ -126,7 +127,7 @@ func (h *ProductCategoryHandler) DeleteCategory(w http.ResponseWriter, r *http.R
 	reqID := params["id"]
 	if reqID == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid product ID"})
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid category ID"})
 		return
 	}
 

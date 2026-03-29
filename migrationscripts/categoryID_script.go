@@ -65,8 +65,8 @@ func main() {
 	categoryMap := make(map[string]bson.ObjectID)
 
 	for _, category := range categoryNames {
-		categoryName := category.(string)
-		if categoryName == "" {
+		categoryName, ok := category.(string)
+		if !ok || categoryName == "" {
 			continue
 		}
 

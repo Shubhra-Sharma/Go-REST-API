@@ -24,11 +24,11 @@ func categoryValidation(category *domain.ProductCategory) error {
 	return nil
 }
 
-func (s *ProductCategoryService) CreateCategory(ctx context.Context, category *domain.ProductCategory) error {
+func (s *ProductCategoryService) CreateCategory(ctx context.Context, category *domain.ProductCategory) (*domain.ProductCategory, error) {
 	// Validation
 	err := categoryValidation(category)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Passing context to repository
@@ -42,7 +42,7 @@ func (s *ProductCategoryService) ListCategories(ctx context.Context) ([]*domain.
 func (s *ProductCategoryService) GetCategoryID(ctx context.Context, title string) (string, error) {
 	category, err := s.repo.GetByTitle(ctx, title)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	return category.ID, nil // Only returning categoryID since rest of metadata of category collection is not needed by product handler, it only wants the categoryID
 }
