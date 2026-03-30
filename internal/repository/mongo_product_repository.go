@@ -150,4 +150,19 @@ func (r *MongoProductRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
+// Delete all the records with a particular categoryID
+func (r *MongoProductRepository) DeleteByCategoryID(ctx context.Context, id string) error {
+	categoryID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return fmt.Errorf("invalid category ID format: %w", err)
+	}
+
+	result, err := r.collection.DeleteMany(ctx, bson.M{"category_id": categoryID})
+	if err != nil {
+		return fmt.Errorf("failed to delete products: %w", err)
+	}
+	fmt.Printf("Deleted %v products for category %s\n", result.DeletedCount, id)
+	return nil
+}
+
 // Product == repository model, domain.Product == Domain Model

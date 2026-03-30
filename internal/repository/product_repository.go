@@ -13,4 +13,5 @@ type ProductRepository interface {
 	GetByCategory(ctx context.Context, id string) ([]*domain.Product, error)
 	Update(ctx context.Context, id string, product *domain.Product) error
 	Delete(ctx context.Context, id string) error
+	DeleteByCategoryID(ctx context.Context, id string) error
 }

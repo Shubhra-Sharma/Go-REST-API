@@ -9,11 +9,12 @@ import (
 )
 
 type ProductCategoryService struct {
-	repo repository.ProductCategoryRepository // A reference to the ProductCategoryRepository interface in order to access its methods.
+	repo        repository.ProductCategoryRepository // A reference to the ProductCategoryRepository interface in order to access its methods.
+	productRepo repository.ProductRepository         //
 }
 
-func NewCategoryService(cat_Repo repository.ProductCategoryRepository) *ProductCategoryService {
-	return &ProductCategoryService{repo: cat_Repo}
+func NewCategoryService(categoryRepo repository.ProductCategoryRepository, productRepository repository.ProductRepository) *ProductCategoryService {
+	return &ProductCategoryService{repo: categoryRepo, productRepo: productRepository}
 }
 
 // A function to check validation of Category
@@ -39,14 +40,6 @@ func (s *ProductCategoryService) ListCategories(ctx context.Context) ([]*domain.
 	return s.repo.List(ctx)
 }
 
-func (s *ProductCategoryService) GetCategoryID(ctx context.Context, title string) (string, error) {
-	category, err := s.repo.GetByTitle(ctx, title)
-	if err != nil {
-		return "", err
-	}
-	return category.ID, nil // Only returning categoryID since rest of metadata of category collection is not needed by product handler, it only wants the categoryID
-}
-
 func (s *ProductCategoryService) UpdateCategory(ctx context.Context, id string, category *domain.ProductCategory) error {
 	// Validation
 	err := categoryValidation(category)
@@ -57,5 +50,10 @@ func (s *ProductCategoryService) UpdateCategory(ctx context.Context, id string, 
 }
 
 func (s *ProductCategoryService) DeleteCategory(ctx context.Context, id string) error {
-	return s.repo.Delete(ctx, id)
+	err := s.repo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+	// If category is successfully deleted from category collection, delete all the products with that particular category from product collection.
+	return s.productRepo.DeleteByCategoryID(ctx, id)
 }

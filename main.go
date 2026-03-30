@@ -48,13 +48,16 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
+
+	// creating repositories first so that they can be used by the services
 	categoryRepo := repository.NewMongoProductCategoryRepository(client, dbName, catcollectionName)
-	categoryService := service.NewCategoryService(categoryRepo) // MongoDB implementation passed as ProductRepository
+	productRepo := repository.NewMongoProductRepository(client, dbName, collectionName)
+
+	categoryService := service.NewCategoryService(categoryRepo, productRepo) // MongoDB implementation passed as ProductRepository
 	categoryHandler := handler.NewCategoryHandler(categoryService)
 
-	productRepo := repository.NewMongoProductRepository(client, dbName, collectionName)
-	productService := service.NewProductService(productRepo) // MongoDB implementation passed as ProductRepository
-	productHandler := handler.NewProductHandler(productService, categoryService)
+	productService := service.NewProductService(productRepo, categoryRepo) // MongoDB implementation passed as ProductRepository
+	productHandler := handler.NewProductHandler(productService)
 
 	router := mux.NewRouter()
 	routes.RegisterRoutes(router, productHandler)
