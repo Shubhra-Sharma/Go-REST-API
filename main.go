@@ -26,7 +26,7 @@ func main() {
 	mongoURI := os.Getenv("MONGODB_URI")
 	dbName := os.Getenv("DBNAME")
 	collectionName := os.Getenv("COLLECTION_NAME")
-
+	catcollectionName := os.Getenv("CATEGORY_COLLECTION_NAME")
 	// Checking env variables
 	if mongoURI == "" {
 		log.Fatal("MONGO_URI environment variable is required")
@@ -37,7 +37,9 @@ func main() {
 	if collectionName == "" {
 		collectionName = "products"
 	}
-
+	if catcollectionName == "" {
+		catcollectionName = "category"
+	}
 	// creating context
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
@@ -47,12 +49,19 @@ func main() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	repo := repository.NewMongoProductRepository(client, dbName, collectionName)
-	productService := service.NewProductService(repo) // MongoDB implementation passed as ProductRepository
+	// creating repositories first so that they can be used by the services
+	categoryRepo := repository.NewMongoProductCategoryRepository(client, dbName, catcollectionName)
+	productRepo := repository.NewMongoProductRepository(client, dbName, collectionName)
+
+	categoryService := service.NewCategoryService(categoryRepo, productRepo) // MongoDB implementation passed as ProductRepository
+	categoryHandler := handler.NewCategoryHandler(categoryService)
+
+	productService := service.NewProductService(productRepo, categoryRepo) // MongoDB implementation passed as ProductRepository
 	productHandler := handler.NewProductHandler(productService)
 
 	router := mux.NewRouter()
 	routes.RegisterRoutes(router, productHandler)
+	routes.CategoryRoutes(router, categoryHandler)
 	log.Println("Server listening on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", middlewares.LoggingMiddleware(router)))
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/Shubhra-Sharma/Go-REST-API/internal/domain"
+	"github.com/Shubhra-Sharma/Go-REST-API/internal/repository/models"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -38,13 +39,41 @@ func (r *MongoProductRepository) Get(ctx context.Context, id string) (*domain.Pr
 		return nil, err
 	}
 
-	var product Product
+	var product models.Product
 	filter := bson.M{"_id": objectID} // bson.M{} is a  map used to create MongoDB queries/filters, it is shorthand for "type M map[string]interface{}"
 	err = r.collection.FindOne(ctx, filter).Decode(&product)
 	if err != nil {
 		return nil, err
 	}
 	return ToDomainProduct(&product), nil
+}
+
+// Get products by category
+func (r *MongoProductRepository) GetByCategory(ctx context.Context, id string) ([]*domain.Product, error) {
+	categoryID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid category ID format: %w", err)
+	}
+
+	// This cursor finds all the products with the specific category_id
+	cursor, err := r.collection.Find(ctx, bson.M{"category_id": categoryID})
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch products by category: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	// Extracting products from cursor into dbProducts
+	var dbProducts []*models.Product
+	if err = cursor.All(ctx, &dbProducts); err != nil {
+		return nil, err
+	}
+
+	// Converting slice of repo model products to domain model products
+	products := make([]*domain.Product, len(dbProducts))
+	for i, val := range dbProducts {
+		products[i] = ToDomainProduct(val)
+	}
+	return products, nil
 }
 
 // Get all the products
@@ -55,7 +84,7 @@ func (r *MongoProductRepository) List(ctx context.Context) ([]*domain.Product, e
 	}
 	defer cursor.Close(ctx) // we need to close the cursor after completion of function to prevent memory leak.
 
-	var dbProducts []*Product // sending reference to slice in place of slice to save memory.
+	var dbProducts []*models.Product // sending reference to slice in place of slice to save memory.
 	if err = cursor.All(ctx, &dbProducts); err != nil {
 		return nil, err
 	}
@@ -118,6 +147,21 @@ func (r *MongoProductRepository) Delete(ctx context.Context, id string) error {
 	if result.DeletedCount == 0 {
 		return errors.New("product not found")
 	}
+	return nil
+}
+
+// Delete all the records with a particular categoryID
+func (r *MongoProductRepository) DeleteByCategoryID(ctx context.Context, id string) error {
+	categoryID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return fmt.Errorf("invalid category ID format: %w", err)
+	}
+
+	result, err := r.collection.DeleteMany(ctx, bson.M{"category_id": categoryID})
+	if err != nil {
+		return fmt.Errorf("failed to delete products: %w", err)
+	}
+	fmt.Printf("Deleted %v products for category %s\n", result.DeletedCount, id)
 	return nil
 }
 
