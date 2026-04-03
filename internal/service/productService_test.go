@@ -82,10 +82,10 @@ func TestCreateProduct(t *testing.T) {
 			want:            "category not found",
 		},
 		{ // To check if service is correctly propagating repository errors
-			name:            "Product repository error",
-			product:         mockProduct(),
-			categoryRepoErr: errors.New("Failed to add new productd"),
-			want:            "Failed to add new product",
+			name:           "Product repository error",
+			product:        mockProduct(),
+			productRepoErr: errors.New("Failed to add new product"),
+			want:           "Failed to add new product",
 		},
 	}
 
