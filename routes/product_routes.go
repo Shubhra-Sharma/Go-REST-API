@@ -5,7 +5,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func RegisterRoutes(router *mux.Router, h *handler.ProductHandler) {
+func RegisterRoutes(router *mux.Router, h handler.ProductHandlerInterface) {
 	router.HandleFunc("/products", h.CreateProduct).Methods("POST")
 	router.HandleFunc("/products", h.ListProducts).Methods("GET")
 	router.HandleFunc("/products/filter/{category}", h.GetProductByCategory).Methods("GET")
