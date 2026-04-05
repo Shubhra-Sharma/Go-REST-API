@@ -10,11 +10,17 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type ProductCategoryHandlerInterface interface {
+	CreateCategory(w http.ResponseWriter, r *http.Request)
+	ListCategories(w http.ResponseWriter, r *http.Request)
+	UpdateCategory(w http.ResponseWriter, r *http.Request)
+	DeleteCategory(w http.ResponseWriter, r *http.Request)
+}
 type ProductCategoryHandler struct {
 	service *service.ProductCategoryService // a pointer to the ProductCategoryService struct
 }
 
-func NewCategoryHandler(categoryService *service.ProductCategoryService) *ProductCategoryHandler {
+func NewCategoryHandler(categoryService *service.ProductCategoryService) ProductCategoryHandlerInterface {
 	return &ProductCategoryHandler{service: categoryService} // categoryService pointer passed in main.go after creating ProductCategoryService struct
 }
 

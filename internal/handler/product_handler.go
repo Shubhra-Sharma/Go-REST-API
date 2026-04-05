@@ -13,11 +13,19 @@ import (
 
 const defaultTimeout = 5 * time.Second
 
+type ProductHandlerInterface interface {
+	CreateProduct(w http.ResponseWriter, r *http.Request)
+	GetProduct(w http.ResponseWriter, r *http.Request)
+	GetProductByCategory(w http.ResponseWriter, r *http.Request)
+	ListProducts(w http.ResponseWriter, r *http.Request)
+	UpdateProduct(w http.ResponseWriter, r *http.Request)
+	DeleteProduct(w http.ResponseWriter, r *http.Request)
+}
 type ProductHandler struct {
 	service *service.ProductService // a pointer to the ProductService struct
 }
 
-func NewProductHandler(productService *service.ProductService) *ProductHandler {
+func NewProductHandler(productService *service.ProductService) ProductHandlerInterface {
 	return &ProductHandler{service: productService} // product_Service pointer passed in main.go
 }
 
