@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/Shubhra-Sharma/Go-REST-API/internal/domain"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateCategory(t *testing.T) {
@@ -13,25 +15,25 @@ func TestCreateCategory(t *testing.T) {
 		name            string
 		category        *domain.ProductCategory
 		categoryRepoErr error
-		want            string
+		wantErrMsg      string
 	}{
-		{ // default
+		{
 			name:     "success",
 			category: mockCategory(),
-			want:     "",
 		},
-		{ // Testing validation logic
-			name:     "missing title",
-			category: &domain.ProductCategory{Description: "new category"},
-			want:     "name of category is required",
+		{
+			name:       "missing title",
+			category:   &domain.ProductCategory{Description: "new category"},
+			wantErrMsg: "name of category is required",
 		},
-		{ // Checking if categoryService correctly returns repository errors or not
-			name:            "Repository error",
+		{
+			name:            "repository error",
 			category:        mockCategory(),
 			categoryRepoErr: errors.New("could not create new category."),
-			want:            "could not create new category.",
+			wantErrMsg:      "could not create new category.",
 		},
 	}
+
 	for _, tt := range testcases {
 		t.Run(tt.name, func(t *testing.T) {
 			categoryRepo := &mockCategoryRepo{
@@ -42,20 +44,17 @@ func TestCreateCategory(t *testing.T) {
 					return category, nil
 				},
 			}
-			categoryService := NewCategoryService(categoryRepo, &mockProductRepo{})
-			result, err := categoryService.CreateCategory(context.Background(), tt.category)
 
-			if tt.want == "" {
-				if err != nil {
-					t.Errorf("Expected no error, got %v.", err)
-				}
-				if result == nil {
-					t.Errorf("Expected resultant category, got nil.")
-				}
+			svc := NewCategoryService(categoryRepo, &mockProductRepo{})
+			result, err := svc.CreateCategory(context.Background(), tt.category)
+
+			if tt.wantErrMsg == "" {
+				require.NoError(t, err)
+				assert.NotNil(t, result)
 			} else {
-				if err == nil || err.Error() != tt.want {
-					t.Errorf("Expected error: %s, got %v", tt.want, err)
-				}
+				require.Error(t, err)
+				assert.EqualError(t, err, tt.wantErrMsg)
+				assert.Nil(t, result)
 			}
 		})
 	}
@@ -66,25 +65,25 @@ func TestUpdateCategory(t *testing.T) {
 		name            string
 		category        *domain.ProductCategory
 		categoryRepoErr error
-		want            string
+		wantErrMsg      string
 	}{
-		{ // default
+		{
 			name:     "success",
 			category: mockCategory(),
-			want:     "",
 		},
-		{ // Testing validation logic
-			name:     "missing title",
-			category: &domain.ProductCategory{},
-			want:     "name of category is required",
+		{
+			name:       "missing title",
+			category:   &domain.ProductCategory{},
+			wantErrMsg: "name of category is required",
 		},
-		{ // Checking if categoryService correctly returns repository errors or not
-			name:            "Repository error",
+		{
+			name:            "repository error",
 			category:        mockCategory(),
 			categoryRepoErr: errors.New("could not update category."),
-			want:            "could not update category.",
+			wantErrMsg:      "could not update category.",
 		},
 	}
+
 	for _, tt := range testcases {
 		t.Run(tt.name, func(t *testing.T) {
 			categoryRepo := &mockCategoryRepo{
@@ -92,42 +91,40 @@ func TestUpdateCategory(t *testing.T) {
 					return tt.categoryRepoErr
 				},
 			}
-			categoryService := NewCategoryService(categoryRepo, &mockProductRepo{})
-			err := categoryService.UpdateCategory(context.Background(), "123", tt.category)
 
-			if tt.want == "" && err != nil {
-				t.Errorf("Expected no error, got %v.", err)
-			} else if tt.want != "" {
-				if err == nil || err.Error() != tt.want {
-					t.Errorf("Expected error: %s, got %v", tt.want, err)
-				}
+			svc := NewCategoryService(categoryRepo, &mockProductRepo{})
+			err := svc.UpdateCategory(context.Background(), "123", tt.category)
+
+			if tt.wantErrMsg == "" {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				assert.EqualError(t, err, tt.wantErrMsg)
 			}
 		})
 	}
 }
 
-// Delete fn of categoryService involves interaction with two repositories, thats why inluding it's test, is it right to do or not?
+// TestDeleteCategory covers two-repo interaction: category deletion + orphaned product cleanup
 func TestDeleteCategory(t *testing.T) {
 	tests := []struct {
 		name            string
 		categoryRepoErr error
 		productRepoErr  error
-		want            string
+		wantErrMsg      string
 	}{
-		{ // success case
+		{
 			name: "success",
-			want: "",
-		},
-		{ // category to be deleted was not found
-			name:            "category not found",
-			categoryRepoErr: errors.New("category not found"),
-			want:            "category not found",
 		},
 		{
-			// Category was deleted successfully but the operation for deleting the orphaned products failed
-			name:           "Delete operation for orphaned products failed",
+			name:            "category not found",
+			categoryRepoErr: errors.New("category not found"),
+			wantErrMsg:      "category not found",
+		},
+		{
+			name:           "delete orphaned products failed",
 			productRepoErr: errors.New("failed to delete products"),
-			want:           "failed to delete products",
+			wantErrMsg:     "failed to delete products",
 		},
 	}
 
@@ -144,16 +141,57 @@ func TestDeleteCategory(t *testing.T) {
 					return tt.productRepoErr
 				},
 			}
-			categoryService := NewCategoryService(categoryRepo, productRepo)
-			err := categoryService.DeleteCategory(context.Background(), "123")
 
-			if tt.want == "" && err != nil {
-				t.Errorf("expected no error, got: %v", err)
+			svc := NewCategoryService(categoryRepo, productRepo)
+			err := svc.DeleteCategory(context.Background(), "123")
+
+			if tt.wantErrMsg == "" {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				assert.EqualError(t, err, tt.wantErrMsg)
 			}
-			if tt.want != "" {
-				if err == nil || err.Error() != tt.want {
-					t.Errorf("expected error '%s', got '%v'", tt.want, err)
-				}
+		})
+	}
+}
+
+func TestListCategories(t *testing.T) {
+	tests := []struct {
+		name            string
+		categoryRepoErr error
+		mockResult      []*domain.ProductCategory
+		wantErrMsg      string
+	}{
+		{
+			name:       "success",
+			mockResult: []*domain.ProductCategory{mockCategory(), mockCategory()},
+		},
+		{
+			name:            "repository error",
+			mockResult:      nil,
+			categoryRepoErr: errors.New("failed to fetch categories"),
+			wantErrMsg:      "failed to fetch categories",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			categoryRepo := &mockCategoryRepo{
+				list: func(ctx context.Context) ([]*domain.ProductCategory, error) {
+					return tt.mockResult, tt.categoryRepoErr
+				},
+			}
+
+			svc := NewCategoryService(categoryRepo, &mockProductRepo{})
+			result, err := svc.ListCategories(context.Background())
+
+			if tt.wantErrMsg == "" {
+				require.NoError(t, err)
+				assert.Equal(t, tt.mockResult, result) // verifies the service returns exactly what the repo returned
+			} else {
+				require.Error(t, err)
+				assert.EqualError(t, err, tt.wantErrMsg)
+				assert.Nil(t, result)
 			}
 		})
 	}

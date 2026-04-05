@@ -73,3 +73,20 @@ func (m *mockCategoryRepo) Update(ctx context.Context, id string, category *doma
 func (m *mockCategoryRepo) Delete(ctx context.Context, id string) error {
 	return m.delete(ctx, id)
 }
+
+func mockProduct() *domain.Product {
+	return &domain.Product{
+		Name:     "iPhone 15",
+		Price:    999,
+		Quantity: 10,
+		Brand:    "Apple",
+		Category: "Electronics",
+	}
+}
+
+func mockCategory() *domain.ProductCategory {
+	return &domain.ProductCategory{
+		ID:    "234",
+		Title: "Electronics",
+	}
+}
