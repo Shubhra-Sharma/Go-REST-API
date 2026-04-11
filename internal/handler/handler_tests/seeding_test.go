@@ -25,8 +25,6 @@ type testEnv struct {
 	router          *mux.Router
 	productHandler  handler.ProductHandlerInterface
 	categoryHandler handler.ProductCategoryHandlerInterface
-	productRepo     repository.ProductRepository
-	categoryRepo    repository.ProductCategoryRepository
 }
 
 func setupTestEnv(t *testing.T) *testEnv {
@@ -55,8 +53,6 @@ func setupTestEnv(t *testing.T) *testEnv {
 		router:          router,
 		productHandler:  productHandler,
 		categoryHandler: categoryHandler,
-		productRepo:     productRepo,
-		categoryRepo:    categoryRepo,
 	}
 
 	// cleaning test DB before each test

@@ -13,6 +13,7 @@ import (
 type ProductCategoryHandlerInterface interface {
 	CreateCategory(w http.ResponseWriter, r *http.Request)
 	ListCategories(w http.ResponseWriter, r *http.Request)
+	GetCategoryByID(w http.ResponseWriter, r *http.Request)
 	UpdateCategory(w http.ResponseWriter, r *http.Request)
 	DeleteCategory(w http.ResponseWriter, r *http.Request)
 }
@@ -86,6 +87,27 @@ func (h *ProductCategoryHandler) UpdateCategory(w http.ResponseWriter, r *http.R
 	// Passing request to service layer
 	if err := h.service.UpdateCategory(ctx, reqID, &category); err != nil {
 		sendResponse(w, http.StatusInternalServerError, map[string]string{"error": "Something went wrong."})
+		return
+	}
+
+	sendResponse(w, http.StatusOK, category)
+}
+
+// GetCategoryByID fetches a single category by its ID from the URL path
+func (h *ProductCategoryHandler) GetCategoryByID(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultTimeout)
+	defer cancel()
+
+	params := mux.Vars(r)
+	reqID := params["id"]
+	if reqID == "" {
+		sendResponse(w, http.StatusBadRequest, map[string]string{"error": "Category ID is invalid."})
+		return
+	}
+
+	category, err := h.service.GetByID(ctx, reqID)
+	if err != nil {
+		sendResponse(w, http.StatusInternalServerError, map[string]string{"error": "Category not found or internal server error."})
 		return
 	}
 

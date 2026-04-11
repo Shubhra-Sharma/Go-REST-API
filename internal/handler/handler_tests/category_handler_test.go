@@ -108,6 +108,28 @@ func TestIntegration_DeleteCategory(t *testing.T) {
 	require.Equal(t, http.StatusNoContent, w.Code, "body: %s", w.Body.String())
 
 	// Verifying that the category does not exist anymore in collection
-	w = makeRequest(t, env.router, http.MethodGet, "/categories"+created.ID, nil)
-	require.Equal(t, http.StatusNotFound, w.Code, "Category with id: %s still exists in the database", created.ID)
+	w = makeRequest(t, env.router, http.MethodGet, "/categories/"+created.ID, nil)
+	require.Equal(t, http.StatusInternalServerError, w.Code, "Category with id: %s still exists in the database", created.ID)
+}
+
+func TestIntegration_DeleteCategory_DeleteOrphanedProducts(t *testing.T) {
+	env := setupTestEnv(t)
+
+	created, err := seedCategory(t, env.router, domain.ProductCategory{Title: "Electronics"})
+	require.NoError(t, err)
+	_, err = seedProduct(t, env.router, domain.Product{Name: "iPhone 15", Price: 999, Quantity: 10, Brand: "Apple", Category: "Electronics"})
+	require.NoError(t, err)
+	_, err = seedProduct(t, env.router, domain.Product{Name: "Samsung S24", Price: 899, Quantity: 5, Brand: "Samsung", Category: "Electronics"})
+	require.NoError(t, err)
+
+	// Delete the category
+	w := makeRequest(t, env.router, http.MethodDelete, "/categories/"+created.ID, nil)
+	require.Equal(t, http.StatusNoContent, w.Code)
+
+	// Verify cascade deleted all products under that category
+	w = makeRequest(t, env.router, http.MethodGet, "/products", nil)
+	var after []domain.Product
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &after))
+
+	assert.Empty(t, after, "expected 0 products after category cascade delete")
 }

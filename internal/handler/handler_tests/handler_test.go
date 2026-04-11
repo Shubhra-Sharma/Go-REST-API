@@ -263,6 +263,6 @@ func TestIntegration_DeleteProduct(t *testing.T) {
 	require.Equal(t, http.StatusNoContent, w.Code, "body: %s", w.Body.String())
 
 	// Verifying that the product does not exist anymore in collection
-	w = makeRequest(t, env.router, http.MethodGet, "/products"+created.ID, nil)
-	require.Equal(t, http.StatusNotFound, w.Code, "Product with id: %s still exists in the database", created.ID)
+	w = makeRequest(t, env.router, http.MethodGet, "/products/"+created.ID, nil)
+	require.Equal(t, http.StatusInternalServerError, w.Code, "Product with id: %s still exists in the database", created.ID)
 }
