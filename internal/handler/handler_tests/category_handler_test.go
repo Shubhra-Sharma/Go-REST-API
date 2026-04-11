@@ -89,6 +89,16 @@ func TestIntegration_UpdateCategory(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code, "body: %s", w.Body.String())
 }
 
+func TestIntegration_UpdateCategory_InvalidID(t *testing.T) {
+	env := setupTestEnv(t)
+
+	w := makeRequest(t, env.router, http.MethodPut, "/categories/invalid123", domain.ProductCategory{
+		Title: "Updated",
+	})
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code, "expected failure for invalid ID")
+}
+
 func TestIntegration_DeleteCategory(t *testing.T) {
 	env := setupTestEnv(t)
 

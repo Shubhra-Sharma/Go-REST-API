@@ -236,6 +236,20 @@ func TestIntegration_UpdateProduct(t *testing.T) {
 	assert.Equal(t, product.Name, "iPhone 15 Pro", "Prices of the result and request do not match.")
 }
 
+func TestIntegration_UpdateProduct_InvalidID(t *testing.T) {
+	env := setupTestEnv(t)
+
+	w := makeRequest(t, env.router, http.MethodPut, "/products/invalid123", domain.Product{
+		Name:     "iPhone 15 Pro",
+		Price:    1199,
+		Quantity: 8,
+		Brand:    "Apple",
+		Category: "Electronics",
+	})
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code, "expected failure for invalid ID")
+}
+
 func TestIntegration_DeleteProduct(t *testing.T) {
 	env := setupTestEnv(t)
 
