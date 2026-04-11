@@ -50,6 +50,7 @@ type mockCategoryRepo struct {
 	create     func(ctx context.Context, category *domain.ProductCategory) (*domain.ProductCategory, error)
 	list       func(ctx context.Context) ([]*domain.ProductCategory, error)
 	getByTitle func(ctx context.Context, title string) (*domain.ProductCategory, error)
+	getByID    func(ctx context.Context, id string) (*domain.ProductCategory, error)
 	update     func(ctx context.Context, id string, category *domain.ProductCategory) error
 	delete     func(ctx context.Context, id string) error
 }
@@ -64,6 +65,10 @@ func (m *mockCategoryRepo) List(ctx context.Context) ([]*domain.ProductCategory,
 
 func (m *mockCategoryRepo) GetByTitle(ctx context.Context, title string) (*domain.ProductCategory, error) {
 	return m.getByTitle(ctx, title)
+}
+
+func (m *mockCategoryRepo) GetByID(ctx context.Context, id string) (*domain.ProductCategory, error) {
+	return m.getByID(ctx, id)
 }
 
 func (m *mockCategoryRepo) Update(ctx context.Context, id string, category *domain.ProductCategory) error {

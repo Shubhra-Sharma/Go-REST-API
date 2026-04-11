@@ -67,6 +67,20 @@ func (r *MongoProductCategoryRepository) List(ctx context.Context) ([]*domain.Pr
 	return categories, nil
 }
 
+func (r *MongoProductCategoryRepository) GetByID(ctx context.Context, id string) (*domain.ProductCategory, error) {
+	objectID, err := bson.ObjectIDFromHex(id) // converting string id to ObjectID which is what is recognized by MongoDB.
+	if err != nil {
+		return nil, err
+	}
+	var category models.ProductCategory
+	filter := bson.M{"_id": objectID}
+	err = r.collection.FindOne(ctx, filter).Decode(&category)
+	if err != nil {
+		return nil, err
+	}
+	return ToDomainCategory(&category), nil
+}
+
 // This returns the category_id for a particular category name
 func (r *MongoProductCategoryRepository) GetByTitle(ctx context.Context, title string) (*domain.ProductCategory, error) {
 	var category models.ProductCategory

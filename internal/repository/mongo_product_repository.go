@@ -28,8 +28,12 @@ func (r *MongoProductRepository) Create(ctx context.Context, product *domain.Pro
 	if err != nil {
 		return err
 	}
-	_, err = r.collection.InsertOne(ctx, dbProduct)
-	return err
+	result, err := r.collection.InsertOne(ctx, dbProduct)
+	if err != nil {
+		return err
+	}
+	product.ID = result.InsertedID.(bson.ObjectID).Hex()
+	return nil
 }
 
 // Extracting the product with the particular id from the database
