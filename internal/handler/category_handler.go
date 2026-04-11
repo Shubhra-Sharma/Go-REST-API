@@ -40,7 +40,7 @@ func (h *ProductCategoryHandler) CreateCategory(w http.ResponseWriter, r *http.R
 	// Creating new category by passing it through to the service layer
 	resultCategory, err := h.service.CreateCategory(ctx, &category)
 	if err != nil {
-		sendResponse(w, http.StatusInternalServerError, map[string]string{"error": "Something went wrong."})
+		sendResponse(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
 	}
 

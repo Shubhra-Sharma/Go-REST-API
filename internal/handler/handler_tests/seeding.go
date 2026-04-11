@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -30,28 +31,18 @@ type testEnv struct {
 
 func setupTestEnv(t *testing.T) *testEnv {
 	t.Helper()
-	// err := godotenv.Load()
-	// if err != nil {
-	// 	log.Fatal("Error loading .env file")
-	// }
-	// // Loading testDB url
-	// uri := os.Getenv("MONGO_TEST_URI")
-	// if uri == "" {
-	// 	log.Fatal("MONGO_TEST_URI environment variable is required.")
-	// }
-	// Connecting to local MongoDB running in Docker
 	client, err := database.Connect(context.Background(), "mongodb://localhost:27017", "restapi_test")
 	require.NoError(t, err, "failed to connect to test MongoDB")
 
-	// Initialize repositories pointing to test DB
+	// Initializing repositories pointing to test DB
 	productRepo := repository.NewMongoProductRepository(client, "restapi_test", "products")
 	categoryRepo := repository.NewMongoProductCategoryRepository(client, "restapi_test", "categories")
 
-	// Initialize services
+	// Initializing services
 	productService := service.NewProductService(productRepo, categoryRepo)
 	categoryService := service.NewCategoryService(categoryRepo, productRepo)
 
-	// Initialize handlers
+	// Initializing handlers
 	productHandler := handler.NewProductHandler(productService)
 	categoryHandler := handler.NewCategoryHandler(categoryService)
 
@@ -93,7 +84,7 @@ func cleanDB(t *testing.T, client *mongo.Client) {
 }
 
 // seedCategory creates a category via the API and returns the created category
-func seedCategory(t *testing.T, router *mux.Router, category domain.ProductCategory) domain.ProductCategory {
+func seedCategory(t *testing.T, router *mux.Router, category domain.ProductCategory) (domain.ProductCategory, error) {
 	t.Helper() // this declares the corresponding function as a testing function
 
 	body, _ := json.Marshal(category)                                                 // converting Go struct into a JSON byte slice for http request
@@ -105,18 +96,18 @@ func seedCategory(t *testing.T, router *mux.Router, category domain.ProductCateg
 
 	router.ServeHTTP(w, req)
 
-	require.Equal(t, http.StatusCreated, w.Code,
-		"seed: failed to create category '%s', body: %s", category.Title, w.Body.String())
-
+	if w.Code != http.StatusCreated {
+		return domain.ProductCategory{}, fmt.Errorf("failed to create category '%s', status: %d, body: %s", category.Title, w.Code, w.Body.String())
+	}
 	var result domain.ProductCategory
-	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &result), // converting the JSON string back to GO struct
-		"seed: failed to decode created category")
-
-	return result
+	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
+		return domain.ProductCategory{}, fmt.Errorf("failed to decode created category: %w", err)
+	}
+	return result, nil
 }
 
 // seedProduct creates a product via the API and returns the created product
-func seedProduct(t *testing.T, router *mux.Router, product domain.Product) domain.Product {
+func seedProduct(t *testing.T, router *mux.Router, product domain.Product) (domain.Product, error) {
 	t.Helper()
 
 	body, _ := json.Marshal(product)
@@ -126,12 +117,12 @@ func seedProduct(t *testing.T, router *mux.Router, product domain.Product) domai
 
 	router.ServeHTTP(w, req)
 
-	require.Equal(t, http.StatusCreated, w.Code,
-		"seed: failed to create product '%s', body: %s", product.Name, w.Body.String())
-
+	if w.Code != http.StatusCreated {
+		return domain.Product{}, fmt.Errorf("failed to create product '%s', status: %d, body: %s", product.Name, w.Code, w.Body.String())
+	}
 	var result domain.Product
-	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &result),
-		"seed: failed to decode created product")
-
-	return result
+	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
+		return domain.Product{}, fmt.Errorf("failed to decode the created product: %w", err)
+	}
+	return result, nil
 }
