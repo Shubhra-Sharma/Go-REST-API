@@ -36,6 +36,10 @@ func (s *ProductCategoryService) CreateCategory(ctx context.Context, category *d
 	return s.repo.Create(ctx, category)
 }
 
+func (s *ProductCategoryService) GetByID(ctx context.Context, id string) (*domain.ProductCategory, error) {
+	return s.repo.GetByID(ctx, id)
+}
+
 func (s *ProductCategoryService) ListCategories(ctx context.Context) ([]*domain.ProductCategory, error) {
 	return s.repo.List(ctx)
 }
